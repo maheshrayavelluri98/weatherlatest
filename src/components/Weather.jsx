@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { BiSearch } from "react-icons/bi";
-// import { BsCloud } from "react-icons/bs";
 import { FaLocationDot, FaWind } from "react-icons/fa6";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchForecastByCity } from "../redux/weatherSlice";
@@ -13,12 +12,6 @@ import cloudImage from "../assets/cloud.jpg";
 function Weather() {
   const [city, setCity] = useState("");
 
-  const handleSearch = () => {
-    if (city.trim() !== "") {
-      dispatch(fetchForecastByCity(city));
-    }
-  };
-
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -26,31 +19,37 @@ function Weather() {
   }, [dispatch]);
 
   const forecast = useSelector((state) => state.weather.forecast);
-  console.log(forecast);
 
-  const forecastHours = forecast.forecast.forecastday[0].hour.slice(0, 10);
+  // Safely access forecast data
+  const forecastHours =
+    forecast?.forecast?.forecastday?.[0]?.hour?.slice(0, 10) || [];
+  const weatherCondition =
+    forecast?.current?.condition?.text?.toLowerCase() || "";
 
-  const weatherCondition = forecast.current.condition.text.toLowerCase();
-
+  // Determine background image based on weather condition
   let backgroundImage = sunnyImage;
 
-  if (weatherCondition) {
-    if (
-      weatherCondition.includes("sunny") ||
-      weatherCondition.includes("clear")
-    ) {
-      backgroundImage = sunnyImage;
-    } else if (weatherCondition.includes("rain")) {
-      backgroundImage = rainImage;
-    } else if (weatherCondition.includes("snow")) {
-      backgroundImage = snowImage;
-    } else if (
-      weatherCondition.includes("cloud") ||
-      weatherCondition.includes("overcast")
-    ) {
-      backgroundImage = cloudImage;
-    }
+  if (
+    weatherCondition.includes("sunny") ||
+    weatherCondition.includes("clear")
+  ) {
+    backgroundImage = sunnyImage;
+  } else if (weatherCondition.includes("rain")) {
+    backgroundImage = rainImage;
+  } else if (weatherCondition.includes("snow")) {
+    backgroundImage = snowImage;
+  } else if (
+    weatherCondition.includes("cloud") ||
+    weatherCondition.includes("overcast")
+  ) {
+    backgroundImage = cloudImage;
   }
+
+  const handleSearch = () => {
+    if (city.trim() !== "") {
+      dispatch(fetchForecastByCity(city));
+    }
+  };
 
   return (
     <div
@@ -65,13 +64,12 @@ function Weather() {
         <div className="weather-info">
           <div className="location">
             <h3>
-              {" "}
-              {forecast.location.name} - {forecast.location.country}{" "}
+              {forecast?.location?.name} - {forecast?.location?.country}
             </h3>
           </div>
 
           <div className="condition">
-            <h1> {forecast.current.condition.text} </h1>
+            <h1>{forecast?.current?.condition?.text}</h1>
           </div>
         </div>
 
@@ -86,13 +84,13 @@ function Weather() {
             return (
               <div className="hour-card" key={index}>
                 <div className="hour-time">
-                  <p> {time} </p>
+                  <p>{time}</p>
                 </div>
                 <div className="hour-condition">
                   <img src={hour.condition.icon} alt="" />
                 </div>
                 <div className="hour-temp">
-                  <h2> {Math.ceil(hour.temp_c)}°C </h2>
+                  <h2>{Math.ceil(hour.temp_c)}°C</h2>
                 </div>
               </div>
             );
@@ -105,25 +103,24 @@ function Weather() {
           <FaLocationDot className="icon" />
           <input
             type="text"
-            placeholder={forecast.location.name}
+            placeholder={forecast?.location?.name || "Enter city"}
             value={city}
             onChange={(e) => setCity(e.target.value)}
           />
           <BiSearch className="icon" onClick={handleSearch} />
         </div>
         <div className="temp-info">
-          <h1> {Math.ceil(forecast.current.temp_c)}°C </h1>
+          <h1>{Math.ceil(forecast?.current?.temp_c || 0)}°C</h1>
 
           <p>
-            {" "}
-            <FaWind /> {forecast.current.wind_dir} {forecast.current.wind_kph}
-            km/h{" "}
+            <FaWind /> {forecast?.current?.wind_dir}{" "}
+            {forecast?.current?.wind_kph} km/h
           </p>
         </div>
         <div className="forecast-days">
-          <h1 className="forecast-heading"> The Next Days Forecast </h1>
+          <h1 className="forecast-heading">The Next Days Forecast</h1>
 
-          {forecast.forecast.forecastday.map((item, index) => {
+          {forecast?.forecast?.forecastday?.map((item, index) => {
             const forecastDate = new Date(item.date).toLocaleDateString(
               "en-GB",
               {
@@ -140,15 +137,15 @@ function Weather() {
                     <img src={item.day.condition.icon} alt="" />
                   </div>
                   <div className="details">
-                    <h2> {forecastDate} </h2>
-                    <p> {item.day.condition.text} </p>
+                    <h2>{forecastDate}</h2>
+                    <p>{item.day.condition.text}</p>
                   </div>
                 </div>
 
                 <div className="forecast-temp">
                   <div className="temp-display">
-                    <h2> {Math.ceil(item.day.maxtemp_c)}°C </h2>
-                    <h2> {Math.ceil(item.day.mintemp_c)}°C</h2>
+                    <h2>{Math.ceil(item.day.maxtemp_c)}°C</h2>
+                    <h2>{Math.ceil(item.day.mintemp_c)}°C</h2>
                   </div>
                 </div>
               </div>
